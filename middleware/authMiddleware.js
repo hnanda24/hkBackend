@@ -9,15 +9,15 @@ async function authMiddleware(req,res,next){
                 message: "No token provided"
             })
         }
-        const checkToken = await jwt.verify(token,SECRET);
-        const decodedToken = checkToken;
+        const decodedToken = await jwt.verify(token,SECRET);
+        req.decodedToken = decodedToken;
         next();
     }
     catch(err){
         return res.status(500).json({
-            message: err
+            message: err.message || "Invalid token"
         })
     }
 }
 
-module.exports = {authMiddleware};
+module.exports = authMiddleware;

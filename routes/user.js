@@ -4,8 +4,8 @@ const zod = require('zod')
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const { authMiddleware } = require('../middleware/authMiddleware.js');
 const SECRET = process.env.SECRET;
+const authMiddleware = require('../middleware/authMiddleware.js')
 
 const signUpSchema = zod.object({
     userName: zod.string()
@@ -54,32 +54,16 @@ router.post('/register', async(req,res) => {
         }
         const user = await User.findOne({email});
         if(user){
-            return res.status(400).json({message: 'User already exists'})
+            return res.status(400).json({message: 'User alreasy Exists'})
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({userName, firstName, lastName, email, password: hashedPassword})
+        const newUser = new User({userName,email,password: hashedPassword})
         await newUser.save();
-        return res.status(201).json({
-            message: "User registered successfully"
-        });
     }
     
     catch(err){
-        if(err.name === 'ValidationError'){
-            return res.status(400).json({
-                message: err.message,
-                errors: err.errors
-            })
-        }
-        if(err.code === 11000){
-            return res.status(400).json({
-                message: "User already exists",
-                field: Object.keys(err.keyPattern)[0]
-            })
-        }
         return res.status(500).json({
-            message: "Internal server error",
-            error: err.message
+            message: err
         })
     }
 })
@@ -106,7 +90,6 @@ router.post('/login', async(req,res) => {
             })
         }
         var token = jwt.sign({email: user.email}, SECRET)
-        // console.log(req)
         return res.status(200).json({
             token,
             message: "Logged in"
@@ -126,7 +109,8 @@ router.get('/displayAllUser', async(req,res) => {
         if(allUser){
             return res.status(200).json(allUser);
         }
-        else{
+        else
+        {
             return res.status(400).json({
                 message: "No user Exist"
             })
@@ -141,7 +125,8 @@ router.get('/displayAllUser', async(req,res) => {
 
 router.get('/displayUser',authMiddleware, async(req,res) => {
     try{
-        const loggedInUser = await User.findOne({email: req.decodedToken.email})
+        // console.log(req.decodedToken)
+        const loggedInUser = await User.findOne({email: req.decodedToken.email}).select("-password")
         if(!loggedInUser){
             return res.status(404).json({message: "User not found"});
         }
@@ -153,6 +138,5 @@ router.get('/displayUser',authMiddleware, async(req,res) => {
         })
     }
 })
-
 
 module.exports = router;
