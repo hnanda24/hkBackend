@@ -109,8 +109,7 @@ router.get('/displayAllUser', async(req,res) => {
         if(allUser){
             return res.status(200).json(allUser);
         }
-        else
-        {
+        else{
             return res.status(400).json({
                 message: "No user Exist"
             })
@@ -125,7 +124,6 @@ router.get('/displayAllUser', async(req,res) => {
 
 router.get('/displayUser',authMiddleware, async(req,res) => {
     try{
-        // console.log(req.decodedToken)
         const loggedInUser = await User.findOne({email: req.decodedToken.email}).select("-password")
         if(!loggedInUser){
             return res.status(404).json({message: "User not found"});
